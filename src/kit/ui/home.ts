@@ -338,6 +338,7 @@ export class ToHome extends LitElement {
           : nothing
       }
       ${want ? this.renderFound(kept) : nothing}
+      <button type="button" class="to-btn to-home-ask" ?hidden=${!!want} aria-haspopup="dialog" @click=${() => this.dispatchEvent(new CustomEvent('to-ask-open', { bubbles: true }))}>${icon(UI.ask, 20)}<span>${t('ask-describe-a-document')}</span></button>
       <div class="to-apps" ?hidden=${!!want}>
         ${apps().map(
           (a) => html`<section class="to-app" aria-label=${a.name}>

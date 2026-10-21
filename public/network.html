@@ -117,6 +117,72 @@ dd{margin:0}
 </dl>
 </section>
 <section class="reach">
+<h3><code>api.anthropic.com</code></h3>
+<p>Ask Claude: a document written from a description, or the open one changed (this fork’s own).</p>
+<dl>
+<dt>When</dt><dd>after a tap</dd>
+<dt>Carries</dt><dd>What you asked, the open document when you ask for a change, and your own API key</dd>
+<dt>Stopped by</dt><dd>Not using Ask Claude: nothing goes until you press Write it</dd>
+<dt>Made by</dt><dd><code>kit/share/claude.ts</code></dd>
+<dt>Allowed by</dt><dd><code>connect-src</code></dd>
+</dl>
+</section>
+<section class="reach">
+<h3><code>console.anthropic.com</code></h3>
+<p>Where to get a Claude API key, a link in Ask Claude.</p>
+<dl>
+<dt>When</dt><dd>after a tap</dd>
+<dt>Carries</dt><dd>Nothing: it opens in a new tab</dd>
+<dt>Stopped by</dt><dd>Not following the link</dd>
+<dt>Made by</dt><dd><code>kit/ui/ask.ts</code></dd>
+<dt>Allowed by</dt><dd>none: it opens in a new tab</dd>
+</dl>
+</section>
+<section class="reach">
+<h3><code>nos.lol</code></h3>
+<p>A live session: how its browsers find each other (a public Nostr relay; this fork’s own).</p>
+<dl>
+<dt>When</dt><dd>after a tap</dd>
+<dt>Carries</dt><dd>An encrypted handshake it cannot read; never the document, whose edits go browser to browser</dd>
+<dt>Stopped by</dt><dd>Not joining a live session</dd>
+<dt>Made by</dt><dd><code>kit/share/live.ts</code></dd>
+<dt>Allowed by</dt><dd><code>connect-src</code></dd>
+</dl>
+</section>
+<section class="reach">
+<h3><code>relay.damus.io</code></h3>
+<p>A live session: how its browsers find each other (a public Nostr relay; this fork’s own).</p>
+<dl>
+<dt>When</dt><dd>after a tap</dd>
+<dt>Carries</dt><dd>An encrypted handshake it cannot read; never the document, whose edits go browser to browser</dd>
+<dt>Stopped by</dt><dd>Not joining a live session</dd>
+<dt>Made by</dt><dd><code>kit/share/live.ts</code></dd>
+<dt>Allowed by</dt><dd><code>connect-src</code></dd>
+</dl>
+</section>
+<section class="reach">
+<h3><code>relay.primal.net</code></h3>
+<p>A live session: how its browsers find each other (a public Nostr relay; this fork’s own).</p>
+<dl>
+<dt>When</dt><dd>after a tap</dd>
+<dt>Carries</dt><dd>An encrypted handshake it cannot read; never the document, whose edits go browser to browser</dd>
+<dt>Stopped by</dt><dd>Not joining a live session</dd>
+<dt>Made by</dt><dd><code>kit/share/live.ts</code></dd>
+<dt>Allowed by</dt><dd><code>connect-src</code></dd>
+</dl>
+</section>
+<section class="reach">
+<h3><code>nostr.mom</code></h3>
+<p>A live session: how its browsers find each other (a public Nostr relay; this fork’s own).</p>
+<dl>
+<dt>When</dt><dd>after a tap</dd>
+<dt>Carries</dt><dd>An encrypted handshake it cannot read; never the document, whose edits go browser to browser</dd>
+<dt>Stopped by</dt><dd>Not joining a live session</dd>
+<dt>Made by</dt><dd><code>kit/share/live.ts</code></dd>
+<dt>Allowed by</dt><dd><code>connect-src</code></dd>
+</dl>
+</section>
+<section class="reach">
 <h3><code>tinier.tinylittleoffice.com</code></h3>
 <p>Short links: made or opened.</p>
 <dl>

@@ -42,7 +42,7 @@ function afterBuild(host: ReturnType<typeof hostOf>): Plugin {
       // the shell, the same on every page), read as scripts/check-build.ts reads them (scripts/headers.ts).
       const inline = inlineScripts(readFileSync(resolve(dist, 'index.html'), 'utf8'));
       const hashes = [...new Set([...pageScripts(), ...inline].map(scriptHash))];
-      writeFileSync(resolve(dist, '_headers'), fillHeaders(readFileSync(resolve(dist, '_headers'), 'utf8'), { scripts: hashes, tinier: host.tinier }));
+      writeFileSync(resolve(dist, '_headers'), fillHeaders(readFileSync(resolve(dist, '_headers'), 'utf8'), { scripts: hashes, tinier: host.tinier, relays: host.relays }));
       // A host other than Cloudflare's (the mirror: scripts/mirror.ts), before the worker's list is hashed from the pages.
       forHost(dist, host);
       writeWorker(
@@ -75,6 +75,8 @@ export function fileOf(id: string): string {
   if (lang && lang[1] !== 'en') return `lang-${lang[1]}`;
   const pkg = /\/node_modules\/((?:@[^/]+\/)?[^/]+)\//.exec(path);
   if (pkg && MAP.has(pkg[1])) return 'map';
+  // Live sessions (this copy's own addition, src/kit/share/live-session.ts): fetched when a session starts, never before.
+  if ((pkg && LIVE.has(pkg[1])) || /\/src\/kit\/share\/live-session\.ts$/.test(path)) return 'live';
   // (The bundler's own runtime, a virtual module, is the app file's: never a file of its own between the two groups.)
   return /\/src\/sw\.ts$/.test(path) ? 'sw' : 'app';
 }
@@ -93,6 +95,20 @@ const MAP = ((): Set<string> => {
     for (const dep of Object.keys(lock.packages[`node_modules/${name}`]?.dependencies ?? {})) walk(dep);
   };
   walk('maplibre-gl');
+  return out;
+})();
+
+/** Live sessions' packages (this copy's own addition): Trystero and Yjs with what they bring, a file of their own like the map's. */
+const LIVE = ((): Set<string> => {
+  const lock = JSON.parse(readFileSync(resolve(import.meta.dirname, 'package-lock.json'), 'utf8')) as { packages: Record<string, { dependencies?: Record<string, string> }> };
+  const out = new Set<string>();
+  const walk = (name: string) => {
+    if (out.has(name)) return;
+    out.add(name);
+    for (const dep of Object.keys(lock.packages[`node_modules/${name}`]?.dependencies ?? {})) walk(dep);
+  };
+  walk('trystero');
+  walk('yjs');
   return out;
 })();
 

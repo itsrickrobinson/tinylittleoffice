@@ -124,6 +124,78 @@ export abstract class DocElement<V> extends LitElement {
     this.redo = [];
     this.emit(key);
   }
+  /**
+   * The document made `text` by the fewest operations: the head's keys that differ, and one splice of the blocks between
+   * the first and the last that differ, so the blocks before and after are the same objects and keep their place on the
+   * screen (and the caret in them). Undone in one step like any edit (Ask Claude's change, kit/ui/ask.ts). With
+   * `remote`, an edit someone else made in a live session (kit/share/live.ts): applied without a place in this undo
+   * history and without a docchange (the shell writes the link itself), and the history kept where the edit leaves it
+   * meaning what it meant (`rebase`). True when anything changed.
+   */
+  becomeText(text: string, { remote = false, key }: { remote?: boolean; key?: string } = {}): boolean {
+    const next = parse(text);
+    const ops: Op[] = [];
+    for (const k of new Set([...Object.keys(this.doc.head), ...Object.keys(next.head)]))
+      if (this.doc.head[k] !== next.head[k]) ops.push({ op: 'head', key: k, ...(next.head[k] === undefined ? {} : { value: next.head[k] }) });
+    const a = this.doc.blocks;
+    const b = next.blocks;
+    const same = (x: unknown, y: unknown) => JSON.stringify(x) === JSON.stringify(y);
+    let lo = 0;
+    while (lo < a.length && lo < b.length && same(a[lo], b[lo])) lo++;
+    let hi = 0;
+    while (hi < a.length - lo && hi < b.length - lo && same(a[a.length - 1 - hi], b[b.length - 1 - hi])) hi++;
+    const n = a.length - lo - hi;
+    const blocks = b.slice(lo, b.length - hi);
+    if (n || blocks.length) ops.push({ op: 'splice', at: lo, n, blocks });
+    if (!ops.length) return false;
+    if (!remote) {
+      this.edit(ops, key);
+      return true;
+    }
+    this.rebase(lo, n, blocks.length);
+    // Every words box here keeps its caret by the blocks it is in, not their numbers (kit/text/text.ts keepPlace), for
+    // the draw this change brings and no later one: a box this change did not reach lets its place go once drawn.
+    const boxes = [...this.querySelectorAll<HTMLElement & { keepPlace?: () => void; dropPlace?: () => void; updateComplete?: Promise<unknown> }>('to-text')];
+    for (const box of boxes) box.keepPlace?.();
+    void this.updateComplete.then(() => Promise.all(boxes.map((b) => b.updateComplete))).then(() => boxes.forEach((b) => b.dropPlace?.()));
+    const before = this.doc;
+    this.doc = applyAll(this.doc, ops);
+    this.view = this.read(this.doc);
+    // An app that moved its own place (the Outliner's row) puts the caret back itself: the words boxes let theirs go.
+    if ((n || blocks.length) && this.shifted(lo, n, blocks.length, before)) boxes.forEach((b) => b.dropPlace?.());
+    this.seen = write(this.doc);
+    this.value = this.seen;
+    this.requestUpdate();
+    return true;
+  }
+  /**
+   * Someone else replaced blocks [at, at + n) with m blocks (a live session), the document now as it is and `before` as
+   * it was: an app that keeps a place by its number (the Outliner's chosen row, the Presentation Builder's slide) moves
+   * it with the blocks, so the person stays where they were. True when it put the caret back itself.
+   */
+  protected shifted(_at: number, _n: number, _m: number, _before: Doc): boolean {
+    return false;
+  }
+  /**
+   * The undo history after someone else replaced blocks [at, at + n) with m blocks: an entry wholly after them is moved
+   * by m − n, one wholly before is left as it is, and one that touches them can no longer be undone safely, so the
+   * history is let go (an undo must never undo someone else's words).
+   */
+  private rebase(at: number, n: number, m: number) {
+    const spots = (ops: Op[]) =>
+      ops.flatMap((op) => (op.op === 'head' ? [] : op.op === 'move' ? [op.at, op.at + op.n, op.to] : op.op === 'splice' ? [op.at, op.at + Math.max(op.n, op.blocks.length)] : [op.at]));
+    const shift = (ops: Op[], d: number): Op[] => ops.map((op) => (op.op === 'head' ? op : op.op === 'move' ? { ...op, at: op.at + d, to: op.to + d } : { ...op, at: op.at + d }));
+    const all = [...this.undo, ...this.redo];
+    const touched = (e: Entry) => [...spots(e.ops), ...spots(e.inverse)];
+    if (all.every((e) => touched(e).every((i) => i < at))) return;
+    if (all.every((e) => touched(e).every((i) => i >= at + n)) && n !== m) {
+      for (const e of all) ((e.ops = shift(e.ops, m - n)), (e.inverse = shift(e.inverse, m - n)));
+      return;
+    }
+    if (all.every((e) => touched(e).every((i) => i >= at + n))) return;
+    this.undo = [];
+    this.redo = [];
+  }
   /** The view read again and the text written out; the shell hears of the change. */
   private emit(key?: string) {
     this.view = this.read(this.doc);

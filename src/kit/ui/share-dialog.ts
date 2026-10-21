@@ -68,6 +68,7 @@ export function openCopy(def: AppDef, doc: string, title: string, locker: Locker
 
 export class ToShare extends LitElement {
   static properties = {
+    liveLink: { attribute: false },
     app: { attribute: false },
     doc: { attribute: false },
     heading: { attribute: false },
@@ -86,6 +87,8 @@ export class ToShare extends LitElement {
     preview: { state: true },
   };
   declare app: string;
+  /** Non-empty while the page is in a live session (kit/share/live.ts): Share offers its invitation and Leave. */
+  declare liveLink: string;
   declare doc: string;
   /** What the document is called. */
   declare heading: string;
@@ -119,6 +122,7 @@ export class ToShare extends LitElement {
 
   constructor() {
     super();
+    this.liveLink = '';
     this.app = '';
     this.doc = '';
     this.heading = '';
@@ -245,6 +249,7 @@ export class ToShare extends LitElement {
         ${canShareNative() ? html`<button type="button" class="to-btn to-share-native" @click=${() => void share()}>${icon(UI.share, 18)}<span>${t('common-share')}</span></button>` : nothing}
       </div>
       ${this.protect}
+      ${this.renderLive()}
       <section class="to-share-section to-share-short" aria-labelledby="to-share-short-h">
         <h3 id="to-share-short-h">${t('share-short-link-that-expires')}</h3>
         ${this.short ? this.renderMade(this.short) : this.renderMaker()}
@@ -253,6 +258,24 @@ export class ToShare extends LitElement {
       ${this.renderQr()}
       ${this.renderEmbedCode()}
       ${this.renderKept()}`;
+  }
+
+  /**
+   * Work on it together, live (this copy's own addition, kit/share/live.ts): a session started here, its link copied to
+   * send; or, in one already, its invitation copied again and Leave. The shell does the work, on the events.
+   */
+  private renderLive() {
+    const say = (name: string) => () => this.dispatchEvent(new CustomEvent(name, { bubbles: true }));
+    return html`<section class="to-share-section to-share-live" aria-labelledby="to-share-live-h">
+      <h3 id="to-share-live-h">${t('live-work-together-live')}</h3>
+      ${
+        this.liveLink
+          ? html`<p class="to-hint">${t('live-you-are-in-a-session')}</p>
+              <div class="to-row"><button type="button" class="to-btn primary to-live-copy" @click=${say('to-live-copy')}>${icon(UI.copy, 16)}<span>${t('live-copy-invite')}</span></button><button type="button" class="to-btn to-live-leave" @click=${() => (say('to-live-leave')(), this.close())}><span>${t('live-leave')}</span></button></div>`
+          : html`<p class="to-hint">${t('live-start-explains')}</p>
+              <button type="button" class="to-btn primary to-live-start" @click=${say('to-live-start')}>${icon(UI.live, 16)}<span>${t('live-start-session')}</span></button>`
+      }
+    </section>`;
   }
 
   /** A deck's show link: the same deck, opening already presenting. */

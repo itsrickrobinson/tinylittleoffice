@@ -56,6 +56,7 @@ import {
   Redo2,
   Search,
   Share2,
+  Sparkles,
   ShieldCheck,
   Smile,
   Strikethrough,
@@ -228,6 +229,8 @@ export const UI = {
   code: Code,
   mail: Mail,
   post: Send,
+  ask: Sparkles,
+  live: Users,
 } as const;
 
 /**

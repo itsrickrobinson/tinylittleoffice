@@ -95,6 +95,11 @@ import '../ui/dialog.ts';
 import '../ui/drawer.ts';
 import '../ui/home.ts';
 import '../ui/compare.ts';
+import '../ui/ask.ts';
+import type { ToAsk } from '../ui/ask.ts';
+import type { DocElement } from './element.ts';
+import { newRoom, roomOf, withLive, type Room } from '../share/live.ts';
+import type { LiveSession, LiveState } from '../share/live-session.ts';
 
 /**
  * How long typing stops before the document is projected into the link (flushLink): a pause in typing, not a gap
@@ -149,6 +154,9 @@ export class ToShell extends LitElement {
     newer: { state: true },
     wording: { state: true },
     copies: { state: true },
+    live: { state: true },
+    liveOthers: { state: true },
+    liveState: { state: true },
   };
   declare app: string | null;
   declare doc: Doc;
@@ -168,6 +176,11 @@ export class ToShell extends LitElement {
   declare newer: boolean; // the link was made by a newer Tiny Little Office
   declare wording: boolean; // the language the link asks for is on its way: nothing is drawn until it is, so no English flashes first
   declare copies: boolean; // the Display Link of someone else's document, told it is a copy (once a document), its line not closed
+  /** The live session this page is in (kit/share/live.ts), its others and whether it has the shared document yet. */
+  declare live: Room | null;
+  declare liveOthers: number;
+  declare liveState: LiveState;
+  private session: LiveSession | null = null;
   private envelope: Head = {}; // the envelope's keys (an empty value: taken out), put into every change
   private sealRun = 0; // the newest seal and check under way: an older one finishing late is dropped
   private presentSoon = false; // a deck's show link: presenting starts once the editor is up
@@ -209,6 +222,9 @@ export class ToShell extends LitElement {
       newer: false,
       wording: false,
       copies: false,
+      live: null,
+      liveOthers: 0,
+      liveState: 'connecting',
     });
   }
   createRenderRoot() {
@@ -237,6 +253,12 @@ export class ToShell extends LitElement {
     on(this, 'focusin', this.noteText);
     on(this, 'to-share-open', () => void this.openShare());
     on(this, 'to-rooms-open', () => void this.openShare(true));
+    // Ask Claude (kit/ui/ask.ts): opened from the header or the home page; a change it made, applied as one edit.
+    on(this, 'to-ask-open', () => void (this.flushLink(), this.requestUpdate(), this.updateComplete.then(() => this.querySelector<ToAsk>('to-ask')?.show())));
+    on(this, 'to-ask-change', ((e: CustomEvent<string>) => (this.editor as DocElement<unknown> | null)?.becomeText(e.detail)) as EventListener);
+    on(this, 'to-live-start', () => void this.startLive());
+    on(this, 'to-live-leave', () => this.leaveLive());
+    on(this, 'to-live-copy', () => void this.copyLive());
     on(this, 'to-link-copied', () => ((this.copied = true), this.guard()));
     on(this, 'click', this.onFollow as EventListener);
     on(window, 'to-leave', this.onGo);
@@ -292,6 +314,7 @@ export class ToShell extends LitElement {
     super.disconnectedCallback();
     this.unpinch();
     this.onLeave();
+    this.leaveLive();
     for (const off of this.offs.splice(0)) off();
     if (this.guarded) window.removeEventListener('beforeunload', this.onUnload);
     this.guarded = false;
@@ -377,6 +400,73 @@ export class ToShell extends LitElement {
     }
     if (this.sealed) void this.reopen(this.sealed);
     else if (def && view) void this.updateComplete.then(() => this.doView());
+    // A live link: joined (a reload of one, joined again); any other address leaves the session this page was in.
+    const room = def && !this.display && !this.embed && !sealed && !this.unreadable ? roomOf(location.hash) : null;
+    if (room?.id !== this.live?.id) this.leaveLive(false);
+    if (room && !this.session) this.joinLive(room, false);
+  };
+
+  /* ---------- live sessions (kit/share/live.ts): this copy's own addition ---------- */
+
+  /** Into the room: the session loaded (its own file) and joined; `starting`, from this page's document. */
+  private joinLive(room: Room, starting: boolean) {
+    this.live = room;
+    this.liveOthers = 0;
+    this.liveState = starting ? 'live' : 'connecting';
+    void import('../share/live-session.ts').then(({ LiveSession }) => {
+      if (this.live !== room || this.session) return;
+      this.session = new LiveSession(room, starting ? this.doc : this.edited, starting, {
+        onRemote: this.onRemote,
+        onPeers: (others, state) => ((this.liveOthers = others), (this.liveState = state)),
+      });
+    });
+  }
+  /** A new session from this document: its live link in the address and copied, to send to the people to work with. */
+  private async startLive() {
+    if (!this.def || this.sealed || this.locker) return void toast(t('live-not-with-password'));
+    this.flushLink();
+    // The editor holds what the link holds (the name a new document was given with its first change, the envelope), so
+    // the session's text and this editor's agree from the start.
+    (this.editor as DocElement<unknown> | null)?.becomeText(this.doc, { remote: true });
+    this.edited = this.doc;
+    const room = newRoom();
+    history.replaceState(this.state(), '', withLive(location.hash, room));
+    this.joinLive(room, true);
+    this.querySelector<ToShare>('to-share')?.close();
+    await this.copyLive();
+  }
+  /** The live link: this document's link with the room in it. */
+  get liveLink(): string {
+    if (!this.live || !this.app) return '';
+    const u = new URL(location.href);
+    u.hash = withLive(routeHash(this.app, parseHash(location.hash).payload, '', false, null, chosenLanguage()), this.live);
+    return u.href;
+  }
+  private async copyLive() {
+    this.flushLink();
+    if (this.liveLink && (await copyText(this.liveLink))) toast(t('live-link-copied'));
+  }
+  /** Out of the session: the document stays as it is here, in this page's own link. */
+  private leaveLive(rewrite = true) {
+    this.session?.leave();
+    this.session = null;
+    if (!this.live) return;
+    this.live = null;
+    if (rewrite) history.replaceState(this.state(), '', withLive(location.hash, null));
+  }
+  /** Someone else's change: into the editor as the fewest edits, and into this page's link when typing pauses. */
+  private onRemote = (text: string) => {
+    if (!this.def || text === this.edited) return;
+    (this.editor as DocElement<unknown> | null)?.becomeText(text, { remote: true });
+    this.edited = text;
+    this.doc = text;
+    this.envelope = { ...takeHead(text, ENVELOPE_KEYS)[0], ...this.envelope };
+    void ensureIcons(iconNames(text));
+    this.staged = text;
+    this.changed = true;
+    clearTimeout(this.projectTimer);
+    this.projectTimer = window.setTimeout(this.flushLink, PAUSE);
+    this.setTitle();
   };
 
   /**
@@ -481,13 +571,14 @@ export class ToShell extends LitElement {
     firstTold(docDigest(app, this.envelope, routeHash(app, payload)));
     this.payloadLength = withBreaks(payload).length;
     this.keepSoon(payload);
-    history.replaceState(this.state(), '', routeHash(app, payload, '', false, null, chosenLanguage()));
+    history.replaceState(this.state(), '', withLive(routeHash(app, payload, '', false, null, chosenLanguage()), this.live));
     this.setTitle();
   }
   /** The editor's change: the text kept, the link left until typing pauses (one timer a burst); nothing drawn (`edited` is not reactive). */
   private onDocChange = (e: Event) => {
     this.edited = (e as DocChange).detail;
     this.staged = this.edited;
+    this.session?.local(this.edited);
     clearTimeout(this.projectTimer);
     this.projectTimer = window.setTimeout(this.flushLink, PAUSE);
     this.copied = false;
@@ -744,6 +835,7 @@ export class ToShell extends LitElement {
     this.fresh = '';
     this.edited = doc;
     this.change(doc);
+    this.session?.local(doc);
   }
 
   /* ---------- drawing ---------- */
@@ -811,6 +903,16 @@ export class ToShell extends LitElement {
     (inDoc ?? this.querySelector<HTMLElement>('.to-main'))?.focus();
   };
 
+  /** The live session's line at the page's foot: who else is here, the invitation copied again, and Leave. */
+  private renderLive() {
+    const words = this.liveState === 'connecting' ? t('live-connecting') : this.liveOthers ? t('live-n-others-here', { n: this.liveOthers }) : t('live-waiting-for-others');
+    return html`<aside class="to-live ${this.liveState} ${this.liveOthers ? 'with' : ''}" aria-label=${t('live-session')}>
+      <span class="to-live-dot" aria-hidden="true"></span><span class="to-live-words" role="status" aria-live="polite">${words}</span>
+      <button type="button" class="to-btn to-live-copy" @click=${() => void this.copyLive()}>${icon(UI.copy, 16)}<span>${t('live-copy-invite')}</span></button>
+      <button type="button" class="to-btn to-live-leave" @click=${() => (this.leaveLive(), toast(t('live-left')))}><span>${t('live-leave')}</span></button>
+    </aside>`;
+  }
+
   render() {
     if (this.wording) return nothing;
     const def = this.def;
@@ -826,10 +928,12 @@ export class ToShell extends LitElement {
     return html`${page}${plain ? nothing : html`<to-find></to-find><to-drawer .downloads=${this.unreadable ? null : downloads} .page=${this.page} .commands=${this.docCommands} .offers=${this.offersNow} .def=${def ?? null}></to-drawer>`}<to-toast></to-toast>
       ${
         def
-          ? html`<to-share .app=${def.id} .doc=${this.doc} .heading=${this.outerTitle} .locked=${!!this.locker} .payloadLength=${this.payloadLength} .protect=${this.privacy?.renderProtect(!!this.locker) ?? nothing} .linkTo=${this.linkTo}></to-share>
+          ? html`<to-share .liveLink=${this.live ? 'live' : ''} .app=${def.id} .doc=${this.doc} .heading=${this.outerTitle} .locked=${!!this.locker} .payloadLength=${this.payloadLength} .protect=${this.privacy?.renderProtect(!!this.locker) ?? nothing} .linkTo=${this.linkTo}></to-share>
             <to-privacy doc .sealed=${this.sealed} ?protected=${!!this.locker} @to-unlock=${this.onUnlock} @to-lock=${this.onLock}></to-privacy>`
           : nothing
       }
+      ${this.live && def && !plain ? this.renderLive() : nothing}
+      ${plain || this.sealed || this.unreadable ? nothing : html`<to-ask .def=${def ?? null} .doc=${this.edited}></to-ask>`}
       <to-dialog class="to-keys-dialog" heading=${t('shell-keyboard-shortcuts')} .body=${renderShortcuts(def)}></to-dialog>
       ${def && !plain ? html`<to-dialog class="to-leave-dialog" heading=${t('shell-this-document-lives-in-its')} .body=${this.renderLeave()}></to-dialog>` : nothing}`;
   }

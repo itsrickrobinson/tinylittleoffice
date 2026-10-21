@@ -19,11 +19,11 @@ export const scriptHash = (code: string) => `'sha256-${createHash('sha256').upda
 export const inlineScripts = (page: string): string[] =>
   [...page.matchAll(/<script(?![^>]*\bsrc=)(?![^>]*type="application\/(?:ld\+)?json")[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]).filter((code) => code.trim());
 
-/** The sources the registry allows by one directive: "https://host". */
+/** The sources the registry allows by one directive: "https://host" (or "wss://host" for a socket). */
 export function sources(directive: Directive): string[] {
   return reaches()
     .filter((r) => r.csp?.includes(directive))
-    .map((r) => `https://${r.host}`)
+    .map((r) => `${r.scheme ?? 'https'}://${r.host}`)
     .filter((s, i, all) => all.indexOf(s) === i);
 }
 
@@ -32,9 +32,15 @@ export function sources(directive: Directive): string[] {
  * is an address of its own: the policy lets the pages reach it in place of tinier.tinylittleoffice.com, so a copy that
  * runs its own shortener (docs/self-host.md) needs no change to the list.
  */
-export function fillHeaders(text: string, { scripts, tinier }: { scripts: string[]; tinier?: string }): string {
+export function fillHeaders(text: string, { scripts, tinier, relays }: { scripts: string[]; tinier?: string; relays?: string }): string {
   const own = tinier && /^https?:\/\//.test(tinier) ? new URL(tinier).origin : '';
-  const connect = sources('connect').map((s) => (own && s === origin('tinier') ? own : s));
+  // A build with relays of its own for live sessions (VITE_LIVE_RELAYS, kit/share/live.ts): the policy names those.
+  const ownRelays = (relays ?? '')
+    .split(',')
+    .map((r) => r.trim())
+    .filter((r) => /^wss?:\/\//.test(r))
+    .map((r) => new URL(r).origin.replace(/^http/, 'ws'));
+  const connect = [...sources('connect').filter((s) => !(ownRelays.length && s.startsWith('wss://'))), ...ownRelays].map((s) => (own && s === origin('tinier') ? own : s));
   return text.replaceAll('{{scripts}}', scripts.join(' ')).replaceAll('{{img}}', sources('img').join(' ')).replaceAll('{{connect}}', connect.join(' '));
 }
 

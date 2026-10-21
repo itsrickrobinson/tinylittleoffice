@@ -1795,3 +1795,65 @@ find-not-found = Not found
 
 menu-nothing-starts-q = No matches for “{ $q }”
 menu-starting-q = Matches for “{ $q }”
+
+## Ask Claude (kit/ui/ask.ts, kit/share/claude.ts): this copy's own addition
+
+ask-claude = Ask Claude
+ask-claude-writes-with-your-key = Claude can write a new document from a description, or change the one you have open. It uses your own Claude API key.
+ask-your-claude-api-key = Your Claude API key
+# Followed by the address of Anthropic's console, a link.
+ask-get-a-key-at = Get a key at
+ask-key-stays-in-this-browser = The key stays in this browser. It is never put in a link or a document.
+ask-model = Model
+ask-save = Save
+ask-back = Back
+ask-forget-key = Forget key
+ask-key-forgotten = The key is forgotten on this device
+ask-that-does-not-look-like-key = That doesn’t look like a Claude API key. It starts with sk-ant-.
+ask-what-should-change = What should change in this { $noun }?
+ask-what-should-claude-make = What should Claude make?
+ask-change-example = Add a slide on risks after the timeline, and make the tone more upbeat.
+ask-make-example = A five-slide deck for Friday’s team meeting: what we shipped, what’s next, a chart of the budget, and our asks.
+ask-make-it-in = Make it in
+ask-let-claude-choose = Let Claude choose
+ask-step-writing = Claude is writing…
+ask-step-checking = Checking it…
+ask-step-fixing = Fixing what the check found…
+ask-sends-this-document-to-anthropic = What you ask and this document’s text go to Anthropic to be answered, and nowhere else.
+ask-sends-your-words-to-anthropic = What you ask goes to Anthropic to be answered, and nowhere else.
+ask-stop = Stop
+ask-write-it = Write it
+ask-settings = Settings
+ask-done-with-n-to-check =
+    { $n ->
+        [one] Done. The check still found one thing to look at.
+       *[other] Done. The check still found { $n } things to look at.
+    }
+ask-changed-undo-takes-it-back = Changed by Claude. Undo takes it back.
+ask-error-key = Add your Claude API key first.
+ask-error-refused = That API key was refused.
+ask-error-network = Claude couldn’t be reached. Check your connection and try again.
+ask-error-limit = Claude is busy, or your key is over its limit. Try again in a moment.
+ask-error-answer = Claude answered without a document. Try saying more about what you want.
+ask-error-other = Something went wrong.
+ask-describe-a-document = Describe a document, and Claude writes it
+
+## live sessions (kit/share/live.ts, kit/core/shell.ts): this copy's own addition
+
+live-session = Live session
+live-work-together-live = Work on it together, live
+live-start-explains = Everyone who opens the live link edits this document with you at the same time, browser to browser. No server holds the document, and each person keeps it in their own link when they leave.
+live-start-session = Start a live session
+live-you-are-in-a-session = You’re in a live session. Send the live link to anyone who should join.
+live-copy-invite = Copy live link
+live-leave = Leave
+live-left = You left the live session. The document stays in this link.
+live-link-copied = Live link copied. Send it to the people you’re working with.
+live-connecting = Live: finding the others…
+live-waiting-for-others = Live: waiting for others to join
+live-n-others-here =
+    { $n ->
+        [one] Live with 1 other person
+       *[other] Live with { $n } others
+    }
+live-not-with-password = A document with a password can’t be shared live. Take the password off first.

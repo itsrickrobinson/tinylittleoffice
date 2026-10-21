@@ -3,7 +3,7 @@ import { test, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { t, register, setLanguage, browserLanguage, directionOf, languages } from '../src/kit/core/i18n.ts';
-import { apply, commandKeys, englishHash, languageFiles, main, placeholders, rulesFor, sheet, usedKeys, withMissing, work, MARK } from '../scripts/i18n-extract.ts';
+import { apply, commandKeys, englishHash, languageFiles, main, placeholders, rulesFor, sheet, usedKeys, withMissing, work, MARK, ENGLISH_ONLY } from '../scripts/i18n-extract.ts';
 import { flatMessages, readFtl } from '../scripts/ftl.ts';
 import { british } from './british.ts';
 import { bare } from '../scripts/ftl-plugin.ts';
@@ -135,7 +135,7 @@ test('every language file has every id en.ftl has, and no English string is Brit
   for (const [code, path] of languageFiles(root)) {
     const have = new Set(Object.keys(flatMessages(readFileSync(path, 'utf8'), code)));
     expect(
-      ids.filter((k) => !have.has(k)),
+      ids.filter((k) => !have.has(k) && !ENGLISH_ONLY.test(k)),
       code,
     ).toEqual([]);
   }

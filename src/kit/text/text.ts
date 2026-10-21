@@ -1211,11 +1211,50 @@ export class ToText extends LitElement {
 
   /* ---------- drawing ---------- */
 
+  /**
+   * Someone else's change is about to arrive (a live session, kit/core/element.ts becomeText): the selection is kept by
+   * the blocks it is in, not their numbers, so a block put in above moves the caret down with its words, and words
+   * put in before the caret in its own block move it on by as many.
+   */
+  keepPlace() {
+    if (!this._sel) return;
+    const m = this.model;
+    this.kept = { blocks: m, anchor: this._sel.anchor, focus: this._sel.focus };
+  }
+  private kept: { blocks: Block[]; anchor: Pos; focus: Pos } | null = null;
+  /** The host puts the caret back itself after that change (the Outliner's row moved): nothing kept here. */
+  dropPlace() {
+    this.kept = null;
+  }
+  /** The selection's place in the new blocks, by the blocks it was in (keepPlace). */
+  private replace(kept: { blocks: Block[]; anchor: Pos; focus: Pos }) {
+    const now = this.model;
+    // A block's characters, an atomic run (an icon, a note's mark) as one, so offsets count as the selection does.
+    const flat = (b: Block | undefined) => (b && 'runs' in b ? b.runs.map((r) => (r.ic || r.fn !== undefined ? '\u0000' : r.t)).join('') : '');
+    const move = (p: Pos): Pos => {
+      const was = kept.blocks[p.block];
+      const same = now.indexOf(was);
+      if (same >= 0) return { block: same, offset: p.offset };
+      // Its own block was changed: the caret moves on by what was put in (or taken out) before it.
+      const at = Math.min(p.block, now.length - 1);
+      const [a, b] = [flat(was), flat(now[at])];
+      let pre = 0;
+      while (pre < a.length && pre < b.length && a[pre] === b[pre]) pre++;
+      let suf = 0;
+      while (suf < a.length - pre && suf < b.length - pre && a[a.length - 1 - suf] === b[b.length - 1 - suf]) suf++;
+      const offset = p.offset <= pre ? p.offset : p.offset >= a.length - suf ? p.offset + (b.length - a.length) : pre + (b.length - a.length > 0 ? b.length - a.length : 0);
+      return { block: at, offset: Math.max(0, Math.min(offset, b.length)) };
+    };
+    this._sel = clampSel(now, { anchor: move(kept.anchor), focus: move(kept.focus) });
+    if (this.hasFocus()) this.pendingSel = 'keep';
+  }
   protected willUpdate(changed: Map<string, unknown>) {
     if (changed.has('blocks')) {
       inherit(changed.get('blocks') as Block[] | undefined, this.blocks, this.fresh);
       this.fresh = -1;
+      if (this.kept) this.replace(this.kept);
     }
+    this.kept = null;
   }
   protected updated(changed: Map<string, unknown>) {
     this.flushSel();

@@ -35,7 +35,7 @@
       --to-border: var(--to-border-strong);
     }
     /* The menu button does not fade while typing (responsive.css): it is the only way to the menu. */
-    to-chrome[editing] :is(.to-burger, .to-share-btn) {
+    to-chrome[editing] :is(.to-burger, .to-share-btn, .to-ask-btn) {
       opacity: 1;
     }
   }

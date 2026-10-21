@@ -1,5 +1,11 @@
 # Tiny Little Office
 
+> **This fork** adds **Ask Claude** (describe a document and Claude writes it, or ask for a change to the open one)
+> and **live sessions** (share a live link and edit together in real time, browser to browser). The team's site is
+> https://itsrickrobinson.github.io/tinylittleoffice/. How to use them, how they work and their limits:
+> [docs/fork.md](docs/fork.md).
+
+
 ## General Notes
 The document is the link.
 - A letter, a spreadsheet, a presentation or a calendar is held in the address of its page

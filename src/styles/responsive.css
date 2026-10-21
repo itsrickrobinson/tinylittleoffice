@@ -216,7 +216,8 @@
       display: none;
     }
     to-chrome[editing] .to-burger,
-    to-chrome[editing] .to-share-btn {
+    to-chrome[editing] .to-share-btn,
+    to-chrome[editing] .to-ask-btn {
       top: max(0.25em, env(safe-area-inset-top));
       inset-inline-end: max(0.25em, env(safe-area-inset-right));
       opacity: 0.55;
@@ -227,9 +228,12 @@
     to-chrome[editing] .to-share-btn {
       inset-inline-end: calc(max(0.25em, env(safe-area-inset-right)) + var(--to-touch) + 0.25em);
     }
-    to-chrome[editing] :is(.to-burger, .to-share-btn):is(:hover, :focus-visible),
-    :root[data-large] to-chrome[editing] :is(.to-burger, .to-share-btn),
-    to-shell:has(dialog.to-drawer[open]) to-chrome[editing] :is(.to-burger, .to-share-btn) {
+    to-chrome[editing] .to-ask-btn {
+      inset-inline-end: calc(max(0.25em, env(safe-area-inset-right)) + 2 * var(--to-touch) + 0.5em);
+    }
+    to-chrome[editing] :is(.to-burger, .to-share-btn, .to-ask-btn):is(:hover, :focus-visible),
+    :root[data-large] to-chrome[editing] :is(.to-burger, .to-share-btn, .to-ask-btn),
+    to-shell:has(dialog.to-drawer[open]) to-chrome[editing] :is(.to-burger, .to-share-btn, .to-ask-btn) {
       opacity: 1;
     }
     /* The column's top keeps the menu button's room, so what is first in it (a row's menu, a stage's) is never under the
@@ -268,6 +272,7 @@
     .to-header,
     .to-burger,
     .to-share-btn,
+    .to-ask-btn,
     to-bar,
     to-drawer,
     to-toast {

@@ -11,7 +11,9 @@
 const KEEP = 'tinyoffice.keep';
 const memory = new Map<string, string>();
 /** Preferences kept on the device in either state, written there straight through `store`. */
-const DEVICE = ['tinyoffice.size', 'to-theme'];
+// The Claude API key and model (kit/share/claude.ts) are a preference of this device too: a person who gave a key is
+// not asked again each visit; Forget key in Ask Claude, or Forget everything, takes it away.
+const DEVICE = ['tinyoffice.size', 'to-theme', 'tinyoffice.claude'];
 /** The keys this site writes, and forgets when Private comes; anything else in localStorage is not ours to touch. */
 const ours = (k: string) => k !== KEEP && !DEVICE.includes(k) && k.startsWith('tinyoffice.');
 

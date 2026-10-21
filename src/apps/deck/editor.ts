@@ -231,6 +231,21 @@ export class ToDeckEditor extends DocElement<Slide[]> {
   protected read(doc: Doc): Slide[] {
     return slidesOf(doc);
   }
+  /** A live session's change: the slide being worked on (and the one being presented) stays the same slide, wherever it moved to. */
+  protected shifted(at: number, n: number, m: number, before: Doc): boolean {
+    const was = slidesOf(before);
+    const now = this.slides;
+    const follow = (i: number) => {
+      const from = was[i]?.from;
+      if (from === undefined || i < 0) return i;
+      const to = from >= at + n ? from + m - n : from;
+      const j = now.findIndex((s) => to >= s.from && to < Math.max(s.to, s.from + 1));
+      return j >= 0 ? j : Math.min(i, now.length - 1);
+    };
+    this.cur = follow(this.cur);
+    if (this.showing >= 0) this.showing = follow(this.showing);
+    return false;
+  }
 
   /* ---------- the document ---------- */
 

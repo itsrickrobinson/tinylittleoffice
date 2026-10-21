@@ -495,9 +495,14 @@ export class ToChrome extends LitElement {
       this.doc && !this.doc.locked
         ? html`<button type="button" class="to-btn to-tool to-share-btn" aria-label=${t('common-share')} title=${t('common-share')} aria-keyshortcuts=${keysAria(SHARE.keys)} aria-haspopup="dialog" @click=${() => this.say('to-share-open')}>${icon(UI.share, 24)}</button>`
         : nothing;
+    // Ask Claude (this copy's own addition, kit/ui/ask.ts), one touch width before Share on every open document.
+    const ask =
+      this.doc && !this.doc.locked
+        ? html`<button type="button" class="to-btn to-tool to-ask-btn" aria-label=${t('ask-claude')} title=${t('ask-claude')} aria-haspopup="dialog" @click=${() => this.say('to-ask-open')}>${icon(UI.ask, 24)}</button>`
+        : nothing;
     const head = html`<header class="to-header ${this.titling ? 'titling' : ''}" aria-label=${t('common-tiny-little-office')} @focusin=${this.openTitle} @focusout=${() => (this.titling = false)} @keydown=${this.titleKey}>${this.doc ? this.renderDoc(this.doc) : html`<a class="to-brand" href="#/">${t('common-tiny-little-office')}</a>`}</header>`;
     // The column scrolls (the room below the last line sees to that even in a short document), so it is in the tab order and the keys scroll it, as the Display Link's column is; a scrollable box no key can reach fails axe's scrollable-region-focusable.
-    return html`${share}${burger}${head}${this.renderArrival()}${this.renderOther()}<div class="to-column ${this.barred ? 'barred' : ''}">
+    return html`${ask}${share}${burger}${head}${this.renderArrival()}${this.renderOther()}<div class="to-column ${this.barred ? 'barred' : ''}">
       <main class=${this.mainClass} tabindex="0" aria-label=${this.label || nothing}>${this.main}</main>
     </div>`;
   }

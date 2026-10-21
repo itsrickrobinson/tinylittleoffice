@@ -27,7 +27,24 @@ export interface Reach {
   /** The module that makes it. */
   by: string;
   csp?: readonly Directive[];
+  /** The scheme the policy names it by: https, or wss for a socket (a live session's relays). */
+  scheme?: 'https' | 'wss';
 }
+
+/**
+ * A relay a live session finds its other readers through (kit/share/live.ts): a public Nostr relay, which passes the
+ * encrypted handshake between browsers and nothing else; the edits themselves go browser to browser.
+ */
+const relay = (host: string): Reach => ({
+  host,
+  what: 'A live session: how its browsers find each other (a public Nostr relay; this fork’s own)',
+  when: 'after a tap',
+  carries: 'An encrypted handshake it cannot read; never the document, whose edits go browser to browser',
+  stops: 'Not joining a live session',
+  by: 'kit/share/live.ts',
+  csp: ['connect'],
+  scheme: 'wss',
+});
 
 const compose = (host: string, what: string): Reach => ({
   host,
@@ -99,6 +116,27 @@ export const NETWORK = {
     stops: 'Not following the link',
     by: 'apps/trip/editor.ts, apps/trip/view.ts',
   },
+  claude: {
+    host: 'api.anthropic.com',
+    what: 'Ask Claude: a document written from a description, or the open one changed (this fork’s own)',
+    when: 'after a tap',
+    carries: 'What you asked, the open document when you ask for a change, and your own API key',
+    stops: 'Not using Ask Claude: nothing goes until you press Write it',
+    by: 'kit/share/claude.ts',
+    csp: ['connect'],
+  },
+  claudeConsole: {
+    host: 'console.anthropic.com',
+    what: 'Where to get a Claude API key, a link in Ask Claude',
+    when: 'after a tap',
+    carries: 'Nothing: it opens in a new tab',
+    stops: 'Not following the link',
+    by: 'kit/ui/ask.ts',
+  },
+  liveRelay1: relay('nos.lol'),
+  liveRelay2: relay('relay.damus.io'),
+  liveRelay3: relay('relay.primal.net'),
+  liveRelay4: relay('nostr.mom'),
   tinier: {
     host: 'tinier.tinylittleoffice.com',
     what: 'Short links: made or opened',

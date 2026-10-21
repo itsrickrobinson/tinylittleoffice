@@ -53,6 +53,13 @@ import { fileURLToPath } from 'node:url';
 import { flatMessages, message, pluralCategories, readFtl, selects, type Entry } from './ftl.ts';
 import { TERMS } from './terms.ts';
 
+/**
+ * This fork's own messages (Ask Claude, live sessions: docs/fork.md), English in every language until someone who
+ * speaks it translates them: a language that lacks one says it in English (kit/core/i18n.ts), and the check lets it.
+ * A language that has one is held to everything else as ever.
+ */
+export const ENGLISH_ONLY = /^(ask|live)-/;
+
 /** The group new ids land in, at the end of en.ftl, for a hand to place. */
 export const MARK = '## New — sort me into a section';
 /** A message the translation memory offered, or one the code asked for, that nobody has read yet. */
@@ -142,7 +149,7 @@ export function checkLanguage(code: string, en: Record<string, string>, source: 
     if (byId.has(e.id)) errors.push(`${e.id} is given twice`);
     byId.set(e.id, e);
   }
-  const missing = Object.keys(en).filter((k) => !byId.has(k));
+  const missing = Object.keys(en).filter((k) => !byId.has(k) && !ENGLISH_ONLY.test(k));
   const extra = [...byId.keys()].filter((k) => !(k in en));
   if (missing.length) errors.push(`${missing.length} missing (English would show):\n    ${missing.join('\n    ')}`);
   if (extra.length) warnings.push(`${extra.length} not in en.ftl (remove them):\n    ${extra.join('\n    ')}`);

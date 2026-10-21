@@ -76,7 +76,7 @@ test('a tag v* deploys: the checks and both Workers by npm run deploy with the t
   expect(release.steps.some((s) => s.uses?.startsWith('actions/attest-build-provenance@'))).toBe(true);
   expect(JSON.stringify(release)).not.toMatch(/secrets\.(CLOUDFLARE|NPM)/);
   // One workflow makes a release: the old release workflow is folded into this one.
-  expect(readdirSync(join(root, '.github/workflows')).sort()).toEqual(['ci.yml', 'dependencies.yml', 'deploy.yml', 'pages.yml']);
+  expect(readdirSync(join(root, '.github/workflows')).sort()).toEqual(['ci.yml', 'dependencies.yml', 'deploy.yml', 'pages.yml', 'team-pages.yml']);
 });
 
 test('the mirror (docs/mirror.md): after a deploy that succeeded, or by hand, the tag built for GitHub Pages and published there, then its version.json checked', () => {

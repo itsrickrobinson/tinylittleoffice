@@ -27,6 +27,10 @@ siblings, one an app; the kit's and the kernel's files each begin by saying what
 - [self-host.md](self-host.md): running your own copy on your own Cloudflare account, in about thirty minutes, and deploying it from GitHub on a tag; or on one machine, as one Node process over one SQLite file, with Docker or without.
 - [mirror.md](mirror.md): the mirror on GitHub Pages, https://aboard-io.github.io/tinylittleoffice/: what it is, what it lacks, and how a document link maps between it and tinylittleoffice.com.
 
+## This fork
+
+- [fork.md](fork.md): this fork's own additions, Ask Claude and live sessions: how the team uses them, how they work, their limits, and how to keep up with Aboard's version.
+
 ## History
 
 - [history/README.md](history/README.md): the record of how the tree was built (the plan of its phases, the gap analysis, the transparency plan, the GitHub checklist, the directives, the reviews); not maintained.

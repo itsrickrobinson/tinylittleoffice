@@ -357,6 +357,16 @@ export class ToOutlineEditor extends DocElement<OutlineView> {
     const first = this.querySelector<HTMLElement>('.ol-row');
     if (first) this.focusRow(Number(first.dataset.at));
   }
+  /** A live session's change above the chosen row: the row (and the caret in its words) moves down or up with its item. */
+  protected shifted(at: number, n: number, m: number): boolean {
+    const was = this.sel;
+    if (was < 0 || was < at + n || n === m) return false;
+    const offset = this.caretIn(was);
+    const had = this.contains(document.activeElement);
+    if (had) this.focusRow(was + m - n, offset);
+    else this.sel = was + m - n;
+    return true;
+  }
   /** Choose the row at `at` and put the caret in its words (at the end, or at `offset`). */
   focusRow(at: number, offset: number | 'end' = 'end') {
     this.sel = at;

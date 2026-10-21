@@ -24,6 +24,8 @@ vendored: every byte of code comes from npm through the committed lockfile; the 
 | `lucide` | 1.57.0 | ISC | The icons (src/kit/draw/icons.ts). The browser has no icon set and emoji draw differently on every system; Lucide is SVG paths, each a module, and the whole set is in the app file, so a document may name any icon, online or off. | 461.5 KB |
 | `maplibre-gl` | 6.14.0 | BSD-3-Clause | The Trip Planner's map (src/apps/trip/editor.ts), drawn from OpenFreeMap's vector tiles. The browser has no map: laying out and drawing vector tiles in WebGL, panning and pinch-zooming them, with markers and a route, is the library's whole job. A file of its own in the build, with its worker and its stylesheet, fetched with the first map and never part of the app file (Paul, 2026-10-15: "hot-load it for that path"). | 900.3 KB |
 | `mathjs` | 15.2.0 | Apache-2.0 | The Calculator's units, big numbers and algebra (src/apps/calc/math.ts). The browser's only expression reader is eval, which the page's policy forbids, and Intl formats units without converting them. A custom build, run only by the Calculator. | 469.0 KB (its own: 381.9 KB) |
+| `trystero` | 0.26.0 | MIT | Live sessions (src/kit/share/live-session.ts; this copy's own addition). RTCPeerConnection is native, but two browsers cannot find each other without a meeting place to pass their offers through; Trystero passes them, encrypted with the room's secret, over public Nostr relays, so a site with no server of its own can still connect its readers. A file of its own in the build, fetched only when a session starts. | none (its own: not measured) |
+| `yjs` | 13.6.33 | MIT | Live sessions' one document (src/kit/share/live-session.ts; this copy's own addition). The browser has no way to merge two people's edits made at the same moment so every copy ends the same; Yjs is a CRDT that does exactly that for a text. A file of its own in the build, with Trystero, fetched only when a session starts. | none (its own: not measured) |
 
 ## What those bring with them
 
@@ -41,6 +43,9 @@ vendored: every byte of code comes from npm through the committed lockfile; the 
 | `@maplibre/maplibre-gl-style-spec` | 26.4.4 | ISC | `maplibre-gl` | none |
 | `@maplibre/mlt` | 1.3.0 | (MIT OR Apache-2.0) | `maplibre-gl` | none |
 | `@maplibre/vt-pbf` | 4.3.2 | MIT | `maplibre-gl` | none |
+| `@noble/secp256k1` | 3.2.0 | MIT | `trystero` | not measured |
+| `@trystero-p2p/core` | 0.26.0 | MIT | `trystero` | not measured |
+| `@trystero-p2p/nostr` | 0.26.0 | MIT | `trystero` | not measured |
 | `@types/geojson` | 7946.0.16 | MIT | `maplibre-gl` | none |
 | `@types/trusted-types` | 2.0.7 | MIT | `lit` | none |
 | `bidi-js` | 1.1.0 | MIT | `maplibre-gl` | none |
@@ -54,9 +59,11 @@ vendored: every byte of code comes from npm through the committed lockfile; the 
 | `fraction.js` | 5.3.4 | MIT | `mathjs` | 9.4 KB |
 | `gl-matrix` | 3.4.4 | MIT | `maplibre-gl` | none |
 | `internmap` | 1.0.1 | ISC | `d3-sankey` | none |
+| `isomorphic.js` | 0.2.5 | MIT | `yjs` | not measured |
 | `javascript-natural-sort` | 0.7.1 | MIT | `mathjs` | none |
 | `json-stringify-pretty-compact` | 4.0.0 | MIT | `maplibre-gl` | none |
 | `kdbush` | 4.1.0 | ISC | `maplibre-gl` | none |
+| `lib0` | 0.2.119 | MIT | `yjs` | not measured |
 | `lit-element` | 4.2.2 | BSD-3-Clause | `lit` | 665 B |
 | `lit-html` | 3.3.3 | BSD-3-Clause | `lit` | 11.3 KB |
 | `minimist` | 1.2.8 | MIT | `maplibre-gl` | none |
