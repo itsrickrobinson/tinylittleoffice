@@ -2232,19 +2232,6 @@
     margin: calc(var(--to-bar-h) + var(--to-gutter)) 0 0;
   }
 
-  /* The foot (kit/ui/home.ts): who made it and where its source is, quiet, its words in line with the apps' names, clear of
-     a phone's home indicator. */
-  .to-home-foot {
-    padding: 1.5em 0.5em max(1.5em, env(safe-area-inset-bottom));
-    color: var(--to-ink-3);
-  }
-  .to-home-foot p {
-    margin: 0 0 0.25em;
-    font-size: calc(0.8125 * var(--to-scale));
-  }
-  .to-home-foot a {
-    color: inherit;
-  }
   /* An app's kept documents line up with it (Paul, 2026-10-12: "The preview documents are supposed to be aligned with
      the app names and icons"): a row's inset is the app row's, so a preview's edge is the icon's and the words are as
      far from the preview as the name from the icon; "n more" starts its words there too. */
@@ -2906,5 +2893,11 @@
     .to-live {
       display: none !important;
     }
+  }
+}
+@layer kit {
+  /* The home page ends with the apps (this fork took out Aboard's foot): room below them, clear of a phone's home indicator. */
+  .to-home {
+    padding-bottom: max(1.5em, env(safe-area-inset-bottom));
   }
 }

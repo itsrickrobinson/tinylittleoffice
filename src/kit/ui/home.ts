@@ -13,11 +13,8 @@
  * <to-templates> is the drawer's too: there a row's button (`via`) hands over to the drawer's one dialog
  * (`bare`, drawn outside the drawer's own), the drawer closing first (one modal at a time: kit/ui/drawer.ts).
  *
- * Below the apps, the foot, one line: "An Aboard Foundry project. Made with respect in New York City. · Beta version ·
- * GitHub · Email" (Paul, 2026-10-12, verbatim; Aboard Foundry a link to aboard.com, GitHub the repository, Email
- * hello+tlo@aboard.com), then the build's version once /version.json is read (its tag, or its commit); the only words on
- * the page beyond the apps' names. The two sites open in a new tab, unasked,
- * and the mail link opens the mail app: the chrome's own links (kit/ui/link-guard.ts `data-to-chrome`).
+ * Nothing below the apps: this fork took out Aboard's foot (who made it, the beta, GitHub, Email and the version); who
+ * made it and the version are in the drawer's About (kit/ui/drawer.ts), and the license in LICENSE.
  *
  * Above the apps, while Save in browser is on and something is kept, a search box over the library (kit/share/search.ts):
  * under Private there is nothing to search, so nothing says so (Paul, 2026-10-12). Every word of it
@@ -27,7 +24,7 @@
 import { LitElement, html, nothing } from 'lit';
 import { unsafeSVG } from 'lit/directives/unsafe-svg.js';
 import type { AppDef, Template } from '../core/app.ts';
-import { apps, siteRoot } from '../core/apps.ts';
+import { apps } from '../core/apps.ts';
 import { decodeDoc, encodeDoc, isSealed } from '../core/codec.ts';
 import { linesOf, search, type Seg } from '../share/search.ts';
 import { icon, UI } from '../draw/icons.ts';
@@ -40,11 +37,9 @@ import { go, parseHash, routeHash } from '../core/route.ts';
 import { ago, forget, library, type Kept } from '../share/library.ts';
 import { keeping, onPrivacy } from '../share/privacy.ts';
 import { focusBack } from './dialog.ts';
-import { origin } from '../core/network.ts';
-import { repoUrl, running, type Version } from '../core/version.ts';
 
 /** Where a note to the makers goes. */
-/** Where to write: the foot's Email and About's "email us" (kit/ui/drawer.ts). */
+/** Where to write: About's "email us" (kit/ui/drawer.ts). */
 export const MAIL = 'mailto:hello+tlo@aboard.com';
 
 /** The documents shown under an app before "n more". */
@@ -252,11 +247,9 @@ function keptLines(k: Kept): string[] {
 const segs = (s: Seg[]) => s.map((x) => (x.hit ? html`<mark>${x.t}</mark>` : x.t));
 
 export class ToHome extends LitElement {
-  static properties = { unfolded: { state: true }, query: { state: true }, version: { state: true } };
+  static properties = { unfolded: { state: true }, query: { state: true } };
   /** What the search box holds. */
   declare query: string;
-  /** The build this site runs, from its /version.json once read (kit/core/version.ts): its tag, or its commit's first seven letters, at the foot's end (Paul, 2026-10-12: "Start putting the version in the footer"). */
-  declare version: Version | null;
   /** The apps whose whole list of documents is shown, past the first five. */
   declare unfolded: Set<string>;
   private offs: (() => void)[] = [];
@@ -267,14 +260,12 @@ export class ToHome extends LitElement {
     super();
     this.unfolded = new Set();
     this.query = '';
-    this.version = null;
   }
   createRenderRoot() {
     return this;
   }
   connectedCallback() {
     super.connectedCallback();
-    void running(siteRoot()).then((v) => (this.version = v));
     window.addEventListener('pageshow', this.redraw);
     document.addEventListener('visibilitychange', this.onVisible);
     this.offs = [onLanguage(this.redraw), onPrivacy(this.redraw), () => window.removeEventListener('pageshow', this.redraw), () => document.removeEventListener('visibilitychange', this.onVisible)];
@@ -320,13 +311,6 @@ export class ToHome extends LitElement {
         })}
       </ul>`;
   }
-  /** Whose project it is and where it was made, the beta, where its source is, and how to write: one line. "Aboard Foundry" and "GitHub" are names, said as they are in every language. */
-  private foot() {
-    const [before, after = ''] = t('home-aboard-project-made-with-respect').split('{aboard}');
-    return html`<footer class="to-home-foot">
-      <p>${before}<a href=${origin('maker')} target="_blank" rel="noopener" data-to-chrome>Aboard Foundry</a>${after} · ${t('home-beta-version')} · <a href=${repoUrl()} target="_blank" rel="noopener" data-to-chrome>GitHub</a> · <a href=${MAIL} data-to-chrome>${t('home-email')}</a>${this.version ? html` · ${this.version.tag || this.version.commit.slice(0, 7)}` : nothing}</p>
-    </footer>`;
-  }
   render() {
     const kept = library();
     const want = this.query.trim();
@@ -353,7 +337,6 @@ export class ToHome extends LitElement {
           </section>`,
         )}
       </div>
-      ${this.foot()}
     </div>`;
   }
 }

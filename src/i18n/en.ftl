@@ -65,11 +65,6 @@ common-forget = Delete
 home-forget-title = Delete { $title }
 # Under an app's documents, the rest folded away: "3 more"
 home-n-more = { $n } more
-# The home page's foot: { $aboard } is the name Aboard, a link to aboard.com, said as it is in every language
-home-aboard-project-made-with-respect = An { $aboard } project. Made with respect in New York City.
-home-beta-version = Beta version
-# The foot's link to the repository on GitHub
-home-email = Email
 home-templates-for-app = Templates for { $app }
 home-app-templates = { $app } Templates
 home-templates-for-app-name = Templates for { $app }: { $name }

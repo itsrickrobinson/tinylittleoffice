@@ -125,7 +125,6 @@ export const NOT_WORDS = new Set<string>(['PNG', 'SVG']);
 export const ALLOWED: Record<string, string> = {
   'https://': 'the start of a web address, the link field’s placeholder: the same in every language',
   'mastodon.social': 'a Mastodon server’s address, the example in the field that asks for yours: a name, not words',
-  'Aboard Foundry': 'the company that made the site, named at the home page’s foot: a name, the same in every language',
   Aboard: 'the company that made the site, named in About (Paul’s words of 2026-10-13): a name, the same in every language',
   GitHub: 'where the site’s source is, named at the home page’s foot: a name, the same in every language',
 };

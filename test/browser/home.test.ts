@@ -1,6 +1,5 @@
-// The home page's foot (Paul, 2026-10-12): one line, "An Aboard Foundry project. Made with respect in New York City. · Beta version · GitHub · Email",
-// Aboard Foundry a link to aboard.com, GitHub the repository, Email a mail link; the sites open in a new tab, in the page's language.
-import { afterEach, expect, test, vi } from 'vitest';
+// The home page: its templates dialog, its kept documents, and the chrome's own links (this fork took out Aboard's foot).
+import { afterEach, expect, test } from 'vitest';
 import { cdp, page } from 'vitest/browser';
 import { setLanguage } from '../../src/kit/core/i18n.ts';
 import { keepSize, SIZE_MAX } from '../../src/kit/ui/zoom.ts';
@@ -15,71 +14,22 @@ afterEach(async () => {
   await page.viewport(1100, 800);
 });
 
-/** The foot's line, and the links in it. */
-const foot = (shell: HTMLElement) => {
-  const f = shell.querySelector<HTMLElement>('to-home footer.to-home-foot')!;
-  return { f, lines: [...f.querySelectorAll('p')].map((p) => p.textContent!.trim()), links: [...f.querySelectorAll('a')] };
-};
-
-test('the home page ends with whose project it is and where it was made, then the beta, its source and how to write', async () => {
+test('a link marked as the chrome’s own, to anywhere but the chrome’s own sites, is still asked about', async () => {
   const shell = await mount('');
-  await until(() => !!shell.querySelector('to-home footer.to-home-foot'));
-  const { f, lines, links } = foot(shell);
-  // Below the apps, last in the page.
-  expect(f.previousElementSibling!.classList.contains('to-apps')).toBe(true);
-  expect(f.nextElementSibling).toBeNull();
-  expect(lines).toEqual(['An Aboard Foundry project. Made with respect in New York City. · Beta version · GitHub · Email']);
-  expect(links.map((a) => [a.textContent, a.href, a.target, a.rel])).toEqual([
-    ['Aboard Foundry', 'https://aboard.com/', '_blank', 'noopener'],
-    ['GitHub', 'https://github.com/aboard-io/tinylittleoffice', '_blank', 'noopener'],
-    ['Email', 'mailto:hello+tlo@aboard.com', '', ''],
-  ]);
-  // Quiet: the kit's muted ink, smaller than an app's name, its words aligned with the apps' names.
-  const style = getComputedStyle(f);
-  const name = shell.querySelector<HTMLElement>('.to-app-name')!;
-  expect(parseFloat(getComputedStyle(f.querySelector('p')!).fontSize)).toBeLessThan(parseFloat(getComputedStyle(name).fontSize));
-  const probe = document.createElement('i');
-  probe.style.color = 'var(--to-ink-3)';
-  f.append(probe);
-  expect(style.color).toBe(getComputedStyle(probe).color);
-  probe.remove();
-  const open = shell.querySelector<HTMLElement>('.to-app-open')!;
-  expect(Math.abs(f.querySelector('p')!.getBoundingClientRect().left - (open.getBoundingClientRect().left + parseFloat(getComputedStyle(open).paddingLeft)))).toBeLessThan(1);
-});
-
-test('the foot is said in the page’s language, the names Aboard and GitHub kept and still the links', async () => {
-  const shell = await mount('');
-  await setLanguage('fr');
-  await until(() => document.documentElement.lang === 'fr');
-  await until(() => !foot(shell).lines[0].startsWith('An Aboard Foundry project.'));
-  const { lines, links } = foot(shell);
-  expect(lines).toEqual(['Un projet Aboard Foundry. Fait avec respect à New York. · Version bêta · GitHub · E-mail']);
-  expect(links.map((a) => [a.textContent, a.href])).toEqual([
-    ['Aboard Foundry', 'https://aboard.com/'],
-    ['GitHub', 'https://github.com/aboard-io/tinylittleoffice'],
-    ['E-mail', 'mailto:hello+tlo@aboard.com'],
-  ]);
-});
-
-test('the foot’s links are the chrome’s own and open as they are; the mark that says so lets nothing else through', async () => {
-  const shell = await mount('');
-  await until(() => !!shell.querySelector('to-home footer.to-home-foot'));
+  await until(() => !!shell.querySelector('to-home .to-home'));
+  const home = shell.querySelector<HTMLElement>('to-home .to-home')!;
   const followed: boolean[] = [];
-  // After the guard (capture, on the document) has had its say: whether the browser would follow, and then not.
   const see = (e: Event) => (followed.push(!e.defaultPrevented), e.preventDefault());
   document.addEventListener('click', see);
   try {
-    for (const a of foot(shell).links) a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-    expect(followed).toEqual([true, true]);
-    expect(document.querySelector('to-dialog.to-link-guard dialog[open]')).toBeNull();
-    // The same mark on a link anywhere else, to anywhere else, is asked about like any link that leaves.
     const forged = Object.assign(document.createElement('a'), { href: 'https://elsewhere.example/', target: '_blank' });
     forged.setAttribute('data-to-chrome', '');
-    foot(shell).f.append(forged);
+    home.append(forged);
     forged.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
     // (The guard stops the click: nothing after it sees one.)
-    expect(followed).toEqual([true, true]);
+    expect(followed).toEqual([]);
     await until(() => !!document.querySelector('to-dialog.to-link-guard dialog[open]'));
+    forged.remove();
   } finally {
     document.removeEventListener('click', see);
     document.querySelectorAll('dialog[open]').forEach((d) => (d as HTMLDialogElement).close());
@@ -406,26 +356,5 @@ test('1100 wide with a mouse: a double click on the templates button leaves the 
     expect(hash()).toMatch(/^#\/v1\/outline/);
   } finally {
     document.querySelectorAll('dialog[open]').forEach((d) => (d as HTMLDialogElement).close());
-  }
-});
-
-// Last in the file: the version once read is kept (kit/core/version.ts running), so the foot of every mount after this would carry it.
-test('the foot ends with the build’s version once /version.json is read: its tag, or its commit’s first seven letters (Paul, 2026-10-12)', async () => {
-  const real = globalThis.fetch;
-  vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = String(input instanceof Request ? input.url : input);
-    if (url.endsWith('/version.json'))
-      return new Response(JSON.stringify({ commit: 'abcdef0123456789abcdef0123456789abcdef01', tag: 'v9.9.9', built: '2026-10-12T00:00:00Z', csp: { scripts: [] } }), {
-        headers: { 'content-type': 'application/json' },
-      });
-    return real(input, init);
-  });
-  try {
-    const shell = await mount('');
-    await until(() => foot(shell).lines[0].endsWith(' · v9.9.9'), 'the version never reached the foot');
-    expect(foot(shell).lines[0]).toBe('An Aboard Foundry project. Made with respect in New York City. · Beta version · GitHub · Email · v9.9.9');
-    expect(foot(shell).links.map((a) => a.textContent)).toEqual(['Aboard Foundry', 'GitHub', 'Email']);
-  } finally {
-    vi.unstubAllGlobals();
   }
 });

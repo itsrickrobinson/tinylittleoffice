@@ -54,12 +54,6 @@ common-forget = মুছুন
 home-forget-title = “{ $title }” মুছুন
 # en: 84ab0eecfadb6332ee8b1ee5c67852b7df54e66f
 home-n-more = আরও { $n }টি
-# en: 7f2352058be05faa9a191d7ac6eb2cf0a15b228f
-home-aboard-project-made-with-respect = { $aboard }-এর একটি প্রজেক্ট। নিউ ইয়র্ক সিটিতে যত্ন আর সম্মানের সঙ্গে তৈরি।
-# en: a26ce4e876668bb8cdbd6db05cc668d436b73ba6
-home-beta-version = বিটা ভার্সন
-# en: 84add5b2952787581cb9a8851eef63d1ec75d22b
-home-email = ইমেইল
 # en: 5b5d9a510b8eb3d8ca42591036a5fb8c0402a674
 home-templates-for-app = { $app }-এর টেমপ্লেট
 # en: 5c88e1ec022720d6a2199c408f861dd61bfdbb08

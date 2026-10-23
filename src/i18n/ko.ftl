@@ -79,12 +79,6 @@ home-forget-title = { $title } 삭제
 # Under an app's documents, the rest folded away: "3 more"
 # en: 84ab0eecfadb6332ee8b1ee5c67852b7df54e66f
 home-n-more = { $n }개 더
-# en: 7f2352058be05faa9a191d7ac6eb2cf0a15b228f
-home-aboard-project-made-with-respect = { $aboard } 프로젝트입니다. 뉴욕에서 존중하는 마음으로 만들었습니다.
-# en: a26ce4e876668bb8cdbd6db05cc668d436b73ba6
-home-beta-version = 베타 버전
-# en: 84add5b2952787581cb9a8851eef63d1ec75d22b
-home-email = 이메일
 # en: 5b5d9a510b8eb3d8ca42591036a5fb8c0402a674
 home-templates-for-app = { $app } 템플릿
 # en: 5c88e1ec022720d6a2199c408f861dd61bfdbb08
